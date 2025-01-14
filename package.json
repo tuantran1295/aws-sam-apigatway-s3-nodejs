@@ -1,0 +1,41 @@
+{
+  "name": "aws-sam-ts-project",
+  "version": "1.0.0",
+  "description": "AWS SAM project with Node.js and TypeScript for generating reports and uploading to S3",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "sam local start-api",
+    "test": "jest",
+    "clean": "rm -rf dist",
+    "deploy": "sam build --debug && sam deploy --s3-bucket sample-csv-bucket --guided"
+  },
+  "author": "Tuan Tran",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.1387.0",
+    "json2csv": "^5.0.7"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/jest": "^29.5.1",
+    "@types/json2csv": "^5.0.7",
+    "@types/node": "^18.15.11",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "testMatch": [
+      "**/__tests__/**/*.(ts|js)",
+      "**/?(*.)+(spec|test).(ts|js)"
+    ]
+  }
+}

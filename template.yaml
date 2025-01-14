@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM project with API Gateway, Lambda, and S3
+
+Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+
+  ReportLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/index.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Timeout: 15
+      Environment:
+        Variables:
+          S3_BUCKET: sample-csv-bucket
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref ReportsBucket
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /generate-csv
+            Method: GET
+
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sample-csv-bucket
+#      AccessControl: Private
+  ReportsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ReportsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${ReportsBucket}/*"
+
+Outputs:
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+#    Value: 'https://b5qq88dm1i.execute-api.ap-southeast-2.amazonaws.com/dev/generate-csv'
+    Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/dev'
+#    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  ReportLambdaFunction:
+    Description: "ReportLambdaFunction ARN"
+    Value: !GetAtt ReportLambdaFunction.Arn
+  ReportLambdaFunctionIamRole:
+    Description: "Implicit IAM Role created for ReportLambdaFunction"
+    Value: !GetAtt ReportLambdaFunctionRole.Arn
+  WebS3BucketName:
+    Description: "S3 Bucket CSV Storage"
+    Value: !Ref ReportsBucket
+
+#Outputs:
+#  ApiUrl:
+#    Value: 'https://b5qq88dm1i.execute-api.ap-southeast-2.amazonaws.com/dev/generate-csv'
+#    Description: URL for the API Gateway
+#  ReportsBucketName:
+#    Value: !Ref ReportsBucket
+#    Description: S3 Bucket for storing reports
